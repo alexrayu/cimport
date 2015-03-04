@@ -21,5 +21,5 @@ NOTE: This module is NOT the best way to import data into Commerce, so use the [
   * When mapping, present the hierarchical taxonomy terms like parent/chaild/child_1, the Term class should create hierarchy where missing and assign the end child term (see the HRERProduct as a sample).
   * When multiple products are added to a Display node, the categories must all be mapped to that display node so it can be found in catalogs. See for an example the HRERDisplay class subclassing the Display class.
 
-If you find this module unclear or not working in your specific case, remember, that I asked you to not use it and use Migrate module instead! ;)
+If you find this module unclear or not working in your specific case, remember, that I asked you to not use it and use the Migrate module instead! ;)
 
