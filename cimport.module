@@ -1,0 +1,179 @@
+<?php
+
+/**
+ * @file
+ * Commerce import custom module.
+ *
+ */
+
+// Include the includes.
+foreach (glob(drupal_get_path('module', 'cimport') . "/includes/*.inc") as $filename) {
+  include $filename;
+}
+
+// Include the classes bases.
+foreach (glob(drupal_get_path('module', 'cimport') . "/includes/base/*.php") as $filename) {
+  include_once $filename;
+}
+
+// Include the classes descendants.
+foreach (glob(drupal_get_path('module', 'cimport') . "/includes/desc/*.php") as $filename) {
+  include_once $filename;
+}
+
+function cimport_page_alter(&$vars) {
+
+  #return;
+
+  #cimport_stats();
+  #return;
+
+  #db_query('DELETE FROM {commerce_product}');
+  #cimport_run();
+}
+
+/**
+ * Return import config.
+ *
+ * Use this to configure the import.
+ */
+function cimport_get_config() {
+  $config = array(
+    'source' => array(
+      'map' => array(
+        'term-l1',
+        'term-l2',
+        'title',
+        'texture',
+        'descr',
+        'qty',
+        'size',
+        'color',
+        'print_style',
+        'file',
+        'price1',
+        'price2',
+        'price3',
+        'price4',
+        'sku',
+        'weight',
+        'height',
+        'length',
+      ),
+      'group_field' => 'title',
+      'skip' => 1,
+      'file_path_prefix' => '*',
+      'generate_sku' => FALSE,
+      'ignore_missing_files' => TRUE,
+      'files_tolower' => TRUE,
+    ),
+    'dest' => array(
+      'type' => 'product',
+      'dest_dir' => 'public://products',
+      'content_type' => 'product_display_with_add_to_cart'
+    ),
+  );
+
+  return $config;
+}
+
+
+/**
+ * Drush import callback.
+ */
+function cimport_run($run_conf = array()) {
+  $config = cimport_get_config();
+
+  // Get data
+  $Source = new HRERSource($config['source']);
+  $data = $Source->getData();
+  $count_products = $Source->count();
+  $count_nodes = count($data);
+  $media = $Source->getMedia();
+  unset($Source);
+
+  // No data. Quit.
+  if (!count($data)) {
+    if (function_exists('drush_log')) {
+      drush_log('No valid data to import.', 'error');
+    }
+    return;
+  }
+
+  // Broken images. Quit.
+  if (count($media['missing'])) {
+    if (empty($config['source']['ignore_missing_files']) || !$config['source']['ignore_missing_files']) {
+      if (function_exists('drush_log')) {
+        drush_log(count($media['missing']) . ' files missing. Override inactive. Will not import.', 'error');
+      }
+      return;
+    }
+    else {
+      if (function_exists('drush_log')) {
+        drush_log(count($media['missing']) . ' files missing. Override active. Import commencing.', 'warning');
+      }
+    }
+  }
+
+  // Main Loop
+  $count = 0;
+  foreach ($data as $pack) {
+    // Create products, gather id's.
+    $products = array();
+    foreach ($pack['items'] as $entry) {
+      $count++;
+      $Product = new HRERProduct($entry, $config['dest']);
+      $product = $Product->getProduct();
+      if (!empty($product->sku)) {
+        $products[] = $product;
+      }
+      unset($Product);
+
+      if (function_exists('drush_log')) {
+        _drush_print_progress($count / $count_products);
+      }
+    }
+
+    if (empty($run_conf['products_only'])) {
+      $Display = new HRERDisplay($products, $config['dest'], $pack);
+      unset($Display);
+    }
+  }
+
+  return array(
+    'products' => $count_products,
+    'nodes' => $count_nodes,
+  );
+}
+
+  /**
+   * Drush stats callback.
+   */
+  function cimport_stats() {
+    $config = cimport_get_config();
+
+    // Get data
+    $Source = new HRERSource($config['source']);
+    $data = $Source->getData();
+    $count_products = $Source->count();
+    $count_nodes = count($data);
+    $media = $Source->getMedia();
+    unset($Source);
+
+    return array(
+      'products' => $count_products,
+      'nodes' => $count_nodes,
+      'media' => $media,
+    );
+  }
+
+  /**
+   * Implements hook_drush_help().
+   */
+  function cimport_drush_help($command) {
+    switch ($command) {
+      case 'drush:my-command':
+        return dt('Run my command');
+    }
+  }
+

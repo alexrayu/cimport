@@ -1,0 +1,6 @@
+name = "Commerce Import"
+description = "Imports CSV to Commerce."
+dependencies[] = commerce
+core = 7.x
+package = "Commerce"
+version = "7.x-0.1"
