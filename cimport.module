@@ -25,7 +25,7 @@ function cimport_page_alter(&$vars) {
 
   #return;
 
-  #cimport_stats();
+  cimport_stats();
   #return;
 
   #db_query('DELETE FROM {commerce_product}');
@@ -47,9 +47,9 @@ function cimport_get_config() {
         'title',
         'descr',
         'qty',
-        'size',
-        'color',
-        'other_attr',
+        'unused-size',
+        'unused-color',
+        'unused-other_attr',
         'contract',
         'contract_price',
         'sale_price',
@@ -61,6 +61,7 @@ function cimport_get_config() {
         'coo',
         'weight',
         'height',
+        'unused-shipping',
         'file',
       ),
       'skip' => 1,

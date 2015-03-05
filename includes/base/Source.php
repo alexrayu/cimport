@@ -206,7 +206,7 @@ Abstract class Source {
     }
     else {
       // No grouping, 1 to 1,
-      foreach ($this->raw_data as $entry) {
+      foreach ($data as $entry) {
         $new_data[]['items'] = $entry;
       }
     }
