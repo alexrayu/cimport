@@ -43,34 +43,36 @@ function cimport_get_config() {
       'map' => array(
         'term-l1',
         'term-l2',
+        'manufacturer',
         'title',
-        'texture',
         'descr',
         'qty',
         'size',
         'color',
-        'print_style',
-        'file',
-        'price1',
-        'price2',
-        'price3',
-        'price4',
-        'sku',
+        'other_attr',
+        'contract',
+        'contract_price',
+        'sale_price',
+        'qty_uoi',
+        'unit',
+        'fob',
+        'sev',
+        'pn',
+        'coo',
         'weight',
         'height',
-        'length',
+        'file',
       ),
-      'group_field' => 'title',
       'skip' => 1,
       'file_path_prefix' => '*',
-      'generate_sku' => FALSE,
+      'generate_sku' => TRUE,
       'ignore_missing_files' => TRUE,
       'files_tolower' => TRUE,
     ),
     'dest' => array(
       'type' => 'product',
       'dest_dir' => 'public://products',
-      'content_type' => 'product_display_with_add_to_cart'
+      'content_type' => 'product_display'
     ),
   );
 
@@ -85,7 +87,7 @@ function cimport_run($run_conf = array()) {
   $config = cimport_get_config();
 
   // Get data
-  $Source = new HRERSource($config['source']);
+  $Source = new DSCSource($config['source']);
   $data = $Source->getData();
   $count_products = $Source->count();
   $count_nodes = count($data);
@@ -122,7 +124,7 @@ function cimport_run($run_conf = array()) {
     $products = array();
     foreach ($pack['items'] as $entry) {
       $count++;
-      $Product = new HRERProduct($entry, $config['dest']);
+      $Product = new DSCProduct($entry, $config['dest']);
       $product = $Product->getProduct();
       if (!empty($product->sku)) {
         $products[] = $product;
@@ -135,7 +137,7 @@ function cimport_run($run_conf = array()) {
     }
 
     if (empty($run_conf['products_only'])) {
-      $Display = new HRERDisplay($products, $config['dest'], $pack);
+      $Display = new DSCDisplay($products, $config['dest'], $pack);
       unset($Display);
     }
   }
@@ -153,7 +155,7 @@ function cimport_run($run_conf = array()) {
     $config = cimport_get_config();
 
     // Get data
-    $Source = new HRERSource($config['source']);
+    $Source = new DSCSource($config['source']);
     $data = $Source->getData();
     $count_products = $Source->count();
     $count_nodes = count($data);
