@@ -40,6 +40,7 @@ class File {
     // Check if file exists, create if not.
     $file = $this->loadFile($new_path);
     if (empty($file->fid)) {
+      $this->checkDir($this->dest_dir . '/' . $type);
       $file = file_copy($ini_file, $new_path, FILE_EXISTS_REPLACE);
     }
 

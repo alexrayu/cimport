@@ -22,10 +22,7 @@ foreach (glob(drupal_get_path('module', 'cimport') . "/includes/desc/*.php") as 
 }
 
 function cimport_page_alter(&$vars) {
-
-  #return;
-
-  cimport_stats();
+  # cimport_stats();
   #return;
 
   #db_query('DELETE FROM {commerce_product}');

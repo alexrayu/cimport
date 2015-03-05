@@ -74,6 +74,10 @@ Abstract class Source {
    */
   protected function prepare() {
     $data = $this->map($this->raw_data);
+
+    // Unset the raw data to save memory.
+    $this->raw_data = array();
+
     if ($this->config['files_tolower']) {
       $data = $this->filesToLower($data);
     }
@@ -160,6 +164,7 @@ Abstract class Source {
       $this->media['all'][] = $item['file'];
       if (!file_exists($item['file'])) {
         $this->media['missing'][] = $item['file'];
+        $item['file'] = '';
       }
     }
 
@@ -207,7 +212,11 @@ Abstract class Source {
     else {
       // No grouping, 1 to 1,
       foreach ($data as $entry) {
-        $new_data[]['items'] = $entry;
+        $new_data[] = array(
+          'items' => array(
+            0 => $entry,
+          ),
+        );
       }
     }
 

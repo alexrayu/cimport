@@ -60,7 +60,7 @@ class Product extends Destination {
     // File
     $fid = $this->filePath2Fid($this->entry['file']);
     if (!empty($fid)) {
-      $product->field_product_image['und'][0]['fid'] = $fid;
+      $product->field_images['und'][0]['fid'] = $fid;
     }
 
     // Color Term

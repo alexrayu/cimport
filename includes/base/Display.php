@@ -52,7 +52,7 @@ class Display extends Destination {
     // Added terms from all entries in a pack.
     $tids = array();
     foreach ($this->pack as $entry) {
-      $tids[] = $this->termPath2Tid($entry['term-l1'] . '/' . $entry['term-l2'], 'event_rentals');
+      $tids[] = $this->termPath2Tid($entry['term-l1'] . '/' . $entry['term-l2'], 'product_category');
     }
     $tids = array_unique($tids);
     foreach ($tids as $tid) {
@@ -65,12 +65,12 @@ class Display extends Destination {
 
     // Add products.
     foreach ($this->products as $product) {
-      $node->field_product_reference['und'][] = array(
+      $node->field_product['und'][] = array(
         'product_id' => $product->product_id,
       );
     }
-
     node_save($node);
+
     $this->node = $node;
   }
 
