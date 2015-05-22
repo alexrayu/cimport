@@ -40,7 +40,7 @@ Abstract class Source {
     $this->config['separator'] = !empty($config['separator']) ? $config['separator'] : ',';
 
     // Field to group by (commerce multi products).
-    $this->config['group_field'] = !empty($config['group_field']) ? $config['group_field'] : -1;
+    $this->config['group_field'] = !empty($config['group_field']) ? $config['group_field'] : NULL;
 
     // Map array.
     $this->config['map'] = !empty($config['map']) ? $config['map'] : array();
@@ -168,10 +168,14 @@ Abstract class Source {
       }
     }
 
-    $this->media['missing'] = array_unique($this->media['missing']);
-    sort($this->media['missing']);
-    $this->media['all'] = array_unique($this->media['all']);
-    sort($this->media['all']);
+    if (!empty($this->media['missing'])) {
+      $this->media['missing'] = array_unique($this->media['missing']);
+      sort($this->media['missing']);
+    }
+    if (!empty($this->media['all'])) {
+      $this->media['all'] = array_unique($this->media['all']);
+      sort($this->media['all']);
+    }
 
     return $data;
   }
@@ -201,11 +205,13 @@ Abstract class Source {
    */
   protected function group($data) {
     $new_data = array();
-    if ($this->config['group_field'] >= 0) {
+    $group_field = $this->config['group_field'];
+    if (!empty($group_field)) {
       // Grouped into multi-products,
       foreach ($data as $entry) {
-        if (!empty($entry[$this->config['group_field']])) {
-          $new_data[$entry[$this->config['group_field']]]['items'][] = $entry;
+        if (!empty($entry[$group_field])) {
+          $field_val = $entry[$group_field];
+          $new_data[$field_val]['items'][] = $entry;
         }
       }
     }
