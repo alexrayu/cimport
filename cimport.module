@@ -21,14 +21,6 @@ foreach (glob(drupal_get_path('module', 'cimport') . "/includes/desc/*.php") as 
   include_once $filename;
 }
 
-function cimport_page_alter(&$vars) {
-  # cimport_stats();
-  #return;
-
-  #db_query('DELETE FROM {commerce_product}');
-  #cimport_run();
-}
-
 /**
  * Return import config.
  *
@@ -41,7 +33,7 @@ function cimport_get_config() {
         'term-l1',
         'term-l2',
         'manufacturer',
-        'title',
+        'title',              // Don't rename this field.
         'descr',
         'qty',
         'unused-size',
@@ -59,7 +51,7 @@ function cimport_get_config() {
         'weight',
         'height',
         'unused-shipping',
-        'file',
+        'file',                 // Don't rename this field.
       ),
       'skip' => 1,
       'file_path_prefix' => '*',
