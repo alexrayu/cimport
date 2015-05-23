@@ -102,7 +102,9 @@ Abstract class Source {
       }
       $oldName = $this->config['files_path'] . '/' . $name;
       $newName = $this->config['files_path'] . '/' . strtolower($name);
-      rename($oldName, $newName);
+      if ($oldName != $newName) {
+        rename($oldName, $newName);
+      }
     }
 
     // Rename file names in record.
