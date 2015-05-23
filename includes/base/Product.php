@@ -78,8 +78,6 @@ class Product extends Destination {
    * Save product.
    */
   protected function save() {
-    $a = 1;
-    exit;
     commerce_product_save($this->product);
   }
 
