@@ -216,6 +216,10 @@ Abstract class Source {
           $new_data[$field_val]['items'][] = $entry;
         }
       }
+      // Check and normalize sku.
+      if ($group_field == 'sku') {
+        $this->normalizeSku($new_data);
+      }
     }
     else {
       // No grouping, 1 to 1,
@@ -229,6 +233,21 @@ Abstract class Source {
     }
 
     return $new_data;
+  }
+
+  /**
+   * Normalize sku of items with same sku.
+   */
+  protected function normalizeSku(&$new_data) {
+    foreach ($new_data as $sku => &$items) {
+      $counter = 0;
+      if (!empty($items['items'])) {
+        foreach ($items['items'] as &$item) {
+          $counter++;
+          $item['sku'] = $sku . '-' . $counter;
+        }
+      }
+    }
   }
 
   /**
