@@ -69,6 +69,14 @@ class Product extends Destination {
       $product->field_product_color['und'][0]['tid'] = $tid;
     }
 
+    // Physical dimensions
+    $product->field_physical_dimensions['und'][0] = array(
+      'height' => !empty($this->entry['height']) ? $this->entry['height'] : 0,
+      'length' => !empty($this->entry['length']) ? $this->entry['length'] : 0,
+      'width' => !empty($this->entry['width']) ? $this->entry['width'] : 0,
+      'unit' => 'in',
+    );
+
     // Description
     $product->field_description['und'][0]['value'] = $this->entry['descr'];
     $product->field_description['und'][0]['format'] = 'full_html';
@@ -79,6 +87,7 @@ class Product extends Destination {
    */
   protected function save() {
     commerce_product_save($this->product);
+    exit;
   }
 
   /**

@@ -40,17 +40,13 @@ class DSCProduct extends Product {
       $product->field_product_texture['und'][0]['tid'] = $tid;
     }
 
-    // Print Style Term
-    $tid = $this->termPath2Tid($this->entry['print_style'], 'print_style');
-    if (!empty($tid)) {
-      $product->field_product_print_style['und'][0]['tid'] = $tid;
-    }
-
-    // Size Term
-    $tid = $this->termPath2Tid($this->entry['size'], 'size');
-    if (!empty($tid)) {
-      $product->field_product_size['und'][0]['tid'] = $tid;
-    }
+      // Physical dimensions
+    $product->field_physical_dimensions['und'][0] = array(
+      'height' => !empty($this->entry['height']) ? $this->entry['height'] : 0,
+      'length' => !empty($this->entry['length']) ? $this->entry['length'] : 0,
+      'width' => !empty($this->entry['width']) ? $this->entry['width'] : 0,
+      'unit' => 'in',
+    );
 
     // Description
     $product->field_description['und'][0]['value'] = $this->entry['descr'];
