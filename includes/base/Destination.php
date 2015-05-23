@@ -19,8 +19,8 @@ Abstract class Destination {
   /**
    * Gets term from hierarchy path and returns a tid.
    */
-  function termPath2Tid($term_path, $vocab_name) {
-    $Term = new Term($term_path, $vocab_name);
+  function termPath2Tid($term_path, $vocab_name, $color_field = NULL) {
+    $Term = new Term(strtolower($term_path), $vocab_name, $color_field);
     $tid = $Term->getTid();
     $this->tids[] = $tid;
     unset($Term);

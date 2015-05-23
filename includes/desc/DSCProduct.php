@@ -29,7 +29,7 @@ class DSCProduct extends Product {
     }
 
     // Color Term
-    $tid = $this->termPath2Tid($this->entry['color'], 'color');
+    $tid = $this->termPath2Tid($this->entry['color'], 'color', 'field_hex_value');
     if (!empty($tid)) {
       $product->field_product_color['und'][0]['tid'] = $tid;
     }
