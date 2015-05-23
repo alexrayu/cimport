@@ -18,6 +18,14 @@ Abstract class Destination {
 
   /**
    * Gets term from hierarchy path and returns a tid.
+   * @param $term_path
+   *  The hierarchy of term, like a/b/c.
+   * @param $vocab_name
+   *  The vocabulary name to use.
+   * @param null $color_field
+   *  The name of the color field value attached to term (if exists), where the
+   *  color value is mapped.
+   * @return term id.
    */
   function termPath2Tid($term_path, $vocab_name, $color_field = NULL) {
     $Term = new Term(strtolower($term_path), $vocab_name, $color_field);
