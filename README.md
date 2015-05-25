@@ -30,54 +30,54 @@ NOTE: This module is NOT the best way to import data into Commerce, so use the [
 
 4. *The files*. The `files` mapping key must not be renamed. More then one file can be imported into a field. Do do that, list the files through comma, like `'file1.jpg,file2.jpg,file3.jpg'`, and so on.
 
-*Example* (In the Product subclass):
+ *Example (In the Product subclass):
 
-```php
-// Files
-$fids_array = $this->filePath2Fid($this->entry['files']);
-if (!empty($fids_array)) {
-  $product->field_product_image['und'] = $fids_array;
-}
-```
+ ```php
+ // Files
+ $fids_array = $this->filePath2Fid($this->entry['files']);
+ if (!empty($fids_array)) {
+   $product->field_product_image['und'] = $fids_array;
+ }
+ ```
 
 
 5. *Taxonomy terms*. Each term is mapped with the `termPath2Tid($term_path, $vocab_name, $color_field)` function, where `$term_path` stands for the hierarchical path of the term, such as `term1/term2`, `$vocab_name` stands for the name of the vocabulary, and `$color_field` is reserved to designate the color value field name for those terms, that depict color. If a term is missing from the vocabulary, it will be created. When source terms have hierarchy, like `term1/term2/term3`, a hierarchy of terms shall be created.
 
-*Example* (In the Product subclass):
+ *Example* (In the Product subclass):
 
-```php
-// Size Term
-$tid = $this->termPath2Tid($this->entry['size'], 'size');
-if (!empty($tid)) {
-  $product->field_size['und'][0]['tid'] = $tid;
-}
-```
+ ```php
+ // Size Term
+ $tid = $this->termPath2Tid($this->entry['size'], 'size');
+ if (!empty($tid)) {
+   $product->field_size['und'][0]['tid'] = $tid;
+ }
+ ```
 
 
 6. *Color terms*. Some terms denote color. CImport will automatically try to match the color value from the name of the color. If it does so sucessfully, and the name of the color field is specified for the `termPath2Tid()` function, then the value of that color will be added to that text field. 
 
-*Example* (In the Product subclass):
+ *Example* (In the Product subclass):
 
-```php
-// Color Term
-$tid = $this->termPath2Tid($this->entry['color'], 'color', 'field_hex_value');
-if (!empty($tid)) {
-  $product->field_product_color['und'][0]['tid'] = $tid;
-}
-```
+ ```php
+ // Color Term
+ $tid = $this->termPath2Tid($this->entry['color'], 'color', 'field_hex_value');
+ if (!empty($tid)) {
+   $product->field_product_color['und'][0]['tid'] = $tid;
+ }
+ ```
 
 
 7. *Physical dimensions* are to be inserted as follows:
 
-```php
-// Physical dimensions
-$product->field_physical_dimensions['und'][0] = array(
-  'height' => !empty($this->entry['height']) ? $this->entry['height'] : 0,
-  'length' => !empty($this->entry['length']) ? $this->entry['length'] : 0,
-  'width' => !empty($this->entry['width']) ? $this->entry['width'] : 0,
-  'unit' => 'in',
-);
-```
+ ```php
+ // Physical dimensions
+ $product->field_physical_dimensions['und'][0] = array(
+   'height' => !empty($this->entry['height']) ? $this->entry['height'] : 0,
+   'length' => !empty($this->entry['length']) ? $this->entry['length'] : 0,
+   'width' => !empty($this->entry['width']) ? $this->entry['width'] : 0,
+   'unit' => 'in',
+ );
+ ```
 
 
 If you find this module unclear or not working in your specific case, remember, that I asked you to not use it and use the Migrate module instead! ;)
