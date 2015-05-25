@@ -22,10 +22,10 @@ class DSCProduct extends Product {
     $product->commerce_price['und'][0]['amount'] = $this->entry['price1'] * 100;
     $product->commerce_price['und'][0]['currency_code'] = !empty($this->entry['currency']) ? $this->entry['currency'] : 'USD';
 
-    // File
-    $fid = $this->filePath2Fid($this->entry['file']);
-    if (!empty($fid)) {
-      $product->field_product_image['und'][0]['fid'] = $fid;
+    // Files
+    $fids_array = $this->filePath2Fid($this->entry['files']);
+    if (!empty($fids_array)) {
+      $product->field_product_image['und'] = $fids_array;
     }
 
     // Color Term

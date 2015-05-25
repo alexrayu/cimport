@@ -109,10 +109,12 @@ Abstract class Source {
 
     // Rename file names in record.
     foreach ($data as &$item) {
-      if (empty($item['file'])) {
+      if (empty($item['files'])) {
         continue;
       }
-      $item['file'] = strtolower($item['file']);
+      foreach ($item['files'] as $key => $file) {
+        $item['files'][$key] = strtolower($file);
+      }
     }
 
     return $data;
@@ -147,26 +149,28 @@ Abstract class Source {
    */
   protected function processFilePaths($data) {
     foreach ($data as &$item) {
-      if (empty($item['file'])) {
+      if (empty($item['files'])) {
         continue;
       }
-      $ini_path = explode('/' , $item['file']);
+      foreach ($item['files'] as $key => $file) {
+        $ini_path = explode('/' , $file);
 
-      // Clear out the prefix.
-      if (!empty($this->config['file_path_prefix'])) {
-        if ($this->config['file_path_prefix'] == '*') {
-          $item['file'] = $this->config['files_path'] . '/' . array_pop($ini_path);
+        // Clear out the prefix.
+        if (!empty($this->config['file_path_prefix'])) {
+          if ($this->config['file_path_prefix'] == '*') {
+            $item['files'][$key] = $this->config['files_path'] . '/' . array_pop($ini_path);
+          }
+          else {
+            $item['files'][$key] = $this->config['files_path'] . '/' . str_replace($this->config['file_path_prefix'], '', $file);
+          }
         }
-        else {
-          $item['file'] = $this->config['files_path'] . '/' . str_replace($this->config['file_path_prefix'], '', $item['file']);
-        }
-      }
 
-      // Add file path to media variable.
-      $this->media['all'][] = $item['file'];
-      if (!file_exists($item['file'])) {
-        $this->media['missing'][] = $item['file'];
-        $item['file'] = '';
+        // Add file path to media variable.
+        $this->media['all'][] = $item['files'][$key];
+        if (!file_exists($item['files'][$key])) {
+          $this->media['missing'][] = $item['files'][$key];
+          $item['files'][$key] = '';
+        }
       }
     }
 
@@ -195,7 +199,12 @@ Abstract class Source {
         continue;
       }
       foreach ($entry as $sub_key => $item) {
-        $new_data[$key][$this->config['map'][$sub_key]] = $item;
+        if ($this->config['map'][$sub_key] == 'files') {
+          $new_data[$key][$this->config['map'][$sub_key]] = explode(',', $item);
+        }
+        else {
+          $new_data[$key][$this->config['map'][$sub_key]] = $item;
+        }
       }
     }
 

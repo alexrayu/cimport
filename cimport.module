@@ -51,7 +51,7 @@ function cimport_get_config() {
         'weight',
         'height',
         'unused-shipping',
-        'file',                 // Don't rename this field.
+        'files',                 // Don't rename this field.
       ),
       'skip' => 1,
       'file_path_prefix' => '*',

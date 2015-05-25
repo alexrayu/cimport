@@ -57,10 +57,16 @@ class Product extends Destination {
     $product->commerce_price['und'][0]['amount'] = floatval($this->entry['price']) * 100;
     $product->commerce_price['und'][0]['currency_code'] = !empty($this->entry['currency']) ? $this->entry['currency'] : 'USD';
 
-    // File
-    $fid = $this->filePath2Fid($this->entry['file']);
-    if (!empty($fid)) {
-      $product->field_images['und'][0]['fid'] = $fid;
+    // Files
+    $fids_array = $this->filePath2Fid($this->entry['files']);
+    if (!empty($fids_array)) {
+      $product->field_product_image['und'] = $fids_array;
+    }
+
+    // Size Term
+    $tid = $this->termPath2Tid($this->entry['size'], 'size');
+    if (!empty($tid)) {
+      $product->field_size['und'][0]['tid'] = $tid;
     }
 
     // Color Term

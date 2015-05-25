@@ -39,12 +39,19 @@ Abstract class Destination {
   /**
    * Gets file from source path to import.
    */
-  function filePath2Fid($path, $dest_dir = 'products') {
-    $File = new File($path, $dest_dir);
-    $fid = $File->getFid();
-    unset($File);
+  function filePath2Fid($paths, $dest_dir = 'products') {
+    $fids_array = array();
+    if (!empty($paths)) {
+      foreach ($paths as $key => $path) {
+        $File = new File($path, $dest_dir);
+        $fids_array[] = array(
+          'fid' => $File->getFid(),
+        );
+        unset($File);
+      }
+    }
 
-    return $fid;
+    return $fids_array;
   }
 
   /**
