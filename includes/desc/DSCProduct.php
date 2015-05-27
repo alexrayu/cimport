@@ -19,7 +19,7 @@ class DSCProduct extends Product {
     $product->true_title = $this->entry['title'];
 
     // Price
-    $product->commerce_price['und'][0]['amount'] = $this->entry['price1'] * 100;
+    $product->commerce_price['und'][0]['amount'] = preg_replace("/[^0-9\.\,]/", NULL, $this->entry['price1'])  * 100;
     $product->commerce_price['und'][0]['currency_code'] = !empty($this->entry['currency']) ? $this->entry['currency'] : 'USD';
 
     // Files

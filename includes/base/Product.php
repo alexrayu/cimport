@@ -47,14 +47,14 @@ class Product extends Destination {
    * Fill product data.
    */
   protected function fill() {
-    $product = &$this->product;
+    $product = $this->product;
 
     // Required
     $product->sku = $this->entry['sku'];
     $product->title = $this->entry['title'];
 
     // Price
-    $product->commerce_price['und'][0]['amount'] =  preg_replace("/[^0-9\.\,]/", NULL, $this->entry['price'] * 100);
+    $product->commerce_price['und'][0]['amount'] =  preg_replace("/[^0-9\.\,]/", NULL, $this->entry['price'])  * 100;
     $product->commerce_price['und'][0]['currency_code'] = !empty($this->entry['currency']) ? $this->entry['currency'] : 'USD';
 
     // Files
@@ -86,6 +86,8 @@ class Product extends Destination {
     // Description
     $product->field_description['und'][0]['value'] = $this->entry['descr'];
     $product->field_description['und'][0]['format'] = 'full_html';
+
+    $this->product = $product;
   }
 
   /**
