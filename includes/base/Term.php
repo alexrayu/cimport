@@ -63,6 +63,7 @@ class Term {
 
     foreach ($path_names as $key => $name) {
       $parent = $key > 0 ? $hierarchy[$key - 1] : NULL;
+      $name = trim($name);
 
       // No parent tree for the first one.
       if ($key == 0) {
