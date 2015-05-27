@@ -200,7 +200,10 @@ Abstract class Source {
       }
       foreach ($entry as $sub_key => $item) {
         if ($this->config['map'][$sub_key] == 'files') {
-          $new_data[$key][$this->config['map'][$sub_key]] = explode(',', $item);
+          $new_data[$key]['files'] = explode(',', $item);
+          foreach($new_data[$key]['files'] as $keya => $filename) {
+            $new_data[$key]['files'][$keya] = trim($filename);
+          }
         }
         else {
           $new_data[$key][$this->config['map'][$sub_key]] = $item;
