@@ -28,6 +28,7 @@ class Term {
 
   function __construct($path, $vocab, $color) {
     $path = trim($path);
+    $path = trim($path, '/');
     if (empty($path) || empty($vocab)) {
       return;
     }
