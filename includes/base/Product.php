@@ -54,7 +54,7 @@ class Product extends Destination {
     $product->title = $this->entry['title'];
 
     // Price
-    $product->commerce_price['und'][0]['amount'] = floatval($this->entry['price']) * 100;
+    $product->commerce_price['und'][0]['amount'] =  preg_replace("/[^0-9\.\,]/", NULL, $this->entry['price'] * 100);
     $product->commerce_price['und'][0]['currency_code'] = !empty($this->entry['currency']) ? $this->entry['currency'] : 'USD';
 
     // Files
