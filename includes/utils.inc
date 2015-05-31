@@ -25,3 +25,31 @@ function _drush_print_progress($ratio) {
 
   print $output;
 }
+
+/**
+ * Deletes unused files from the public://
+ */
+function cimport_clean_unused_files() {
+  $public = drupal_realpath('public://');
+  $files = scandir($public);
+  $total = count($files);
+  $orphans = 0;
+  $cur_file = 0;
+  foreach($files as $key => $name) {
+    $cur_file++;
+    if (strlen($name) > 3 && strpos($name, '.jpg')) {
+      $fid = db_select('file_managed', 'f')
+        ->fields('f', array('fid'))
+        ->condition('uri', '%' . $name . '%', 'LIKE')
+        ->execute()
+        ->fetchField();
+      if (!$fid) {
+        unlink($public . '/' . $name);
+        $orphans++;
+      }
+    }
+    _drush_print_progress($cur_file / $total);
+  }
+  drush_log('Found ' . $total . 'total items in public://', 'ok');
+  drush_log('Found ' . $orphans . ' unused items in public://', 'ok');
+}

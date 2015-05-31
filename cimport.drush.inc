@@ -22,6 +22,10 @@ function cimport_drush_command() {
     'arguments'   => array(),
     'aliases' => array('cip'),
   );
+    $items['fclean'] = array(
+    'description' => dt('Files Clean.'),
+    'arguments'   => array(),
+  );
   
   return $items;
 }
@@ -65,4 +69,13 @@ function drush_cimport_ciprods() {
   drush_log('Running re-import of products', 'ok');
   $res = cimport_run(array('products_only' => TRUE));
   drush_log('Re-imported ' . $res['products'] . ' products.', 'ok');
+}
+
+/**
+ * Clean unused files.
+ */
+function drush_cimport_fclean() {
+  drush_log('Running cleanup', 'ok');
+  $res = cimport_clean_unused_files();
+  drush_log('Unused files cleaned', 'ok');
 }
