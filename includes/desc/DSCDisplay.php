@@ -59,6 +59,9 @@ class DSCDisplay extends Display {
         'product_id' => $product->product_id,
       );
     }
+    
+    // Description
+    $node->body['en'][0]['value'] = $entry['descr'];
 
     node_save($node);
     $this->node = $node;
