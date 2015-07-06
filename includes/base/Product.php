@@ -4,7 +4,6 @@
  * @file
  *  Handles assignation to the product entity.
  */
-
 class Product extends Destination {
 
   // Product configuration.
@@ -36,7 +35,9 @@ class Product extends Destination {
    * If no product exists, create a new product template.
    */
   protected function create() {
-    $this->product = commerce_product_load_by_sku($this->entry['sku']);
+    if (!empty($this->entry['update']['pid'])) {
+      $this->product = commerce_product_load($this->entry['update']['pid']);
+    }
     if (empty($this->product->product_id)) {
       $this->product = commerce_product_new($this->config['type']);
       $this->product->uid = 1;
@@ -54,7 +55,7 @@ class Product extends Destination {
     $product->title = $this->entry['title'];
 
     // Price
-    $product->commerce_price['und'][0]['amount'] =  preg_replace("/[^0-9\.\,]/", NULL, $this->entry['price'])  * 100;
+    $product->commerce_price['und'][0]['amount'] = preg_replace("/[^0-9\.\,]/", NULL, $this->entry['price']) * 100;
     $product->commerce_price['und'][0]['currency_code'] = !empty($this->entry['currency']) ? $this->entry['currency'] : 'USD';
 
     // Files

@@ -4,7 +4,6 @@
  * @file
  *  Template for destination classes.
  */
-
 Abstract class Destination {
 
   // Product configuration.

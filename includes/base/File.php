@@ -4,7 +4,6 @@
  * @file
  *  Handles Files and Images.
  */
-
 class File {
 
   // File full and ready path.
@@ -15,7 +14,7 @@ class File {
 
   function __construct($file_path, $dest_dir = 'products') {
     $this->file_path = $file_path;
-    $this->dest_dir =  'public://' . $dest_dir;
+    $this->dest_dir = 'public://' . $dest_dir;
 
     $this->import();
   }
@@ -82,7 +81,6 @@ class File {
 
     return $file;
   }
-
 
 
   /**

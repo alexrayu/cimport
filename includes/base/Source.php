@@ -4,7 +4,6 @@
  * @file
  *  Handles import from the CSV file. Generic class.
  */
-
 Abstract class Source {
 
   // Raw data.
@@ -20,7 +19,12 @@ Abstract class Source {
   protected $config = array();
 
   // Amount of valid products,
-  protected $count;
+  protected $count = array(
+    'products' => 0,
+    'nodes' => 0,
+    'upd_products' => 0,
+    'upd_nodes' => 0,
+  );
 
   function __construct($config) {
 
@@ -58,6 +62,7 @@ Abstract class Source {
     $this->prepare();
   }
 
+
   /**
    * Imports csv.
    */
@@ -82,11 +87,47 @@ Abstract class Source {
       $data = $this->filesToLower($data);
     }
     $data = $this->filterInvalid($data);
-    $this->count = count($data);
+    $this->count['products'] = count($data);
     $data = $this->processFilePaths($data);
     $data = $this->group($data);
+    $data = $this->findExisting($data);
 
     $this->data = $data;
+  }
+
+  /**
+   * Find existing products to update.
+   */
+  function findExisting(&$data) {
+    $prod_upd = 0;
+    $node_upd = 0;
+    foreach ($data as $key => $items) {
+      $entries = $items['items'];
+      $child_updated = FALSE;
+      foreach ($entries as $entry_id => $entry) {
+        $product = commerce_product_load_by_sku($entry['sku']);
+        $pid = $product->product_id;
+        if ($pid) {
+          $prod_upd++;
+          $child_updated = TRUE;
+          $nid = cimport_get_nid_from_pid($pid);
+          $data[$key]['display'] = $nid;
+          $data[$key]['items'][$entry_id]['update'] = array(
+            'pid' => $pid,
+          );
+        }
+      }
+      if ($child_updated) {
+        $node_upd++;
+      }
+    }
+
+    // Set global count.
+    $this->count['nodes'] = count($data);
+    $this->count['upd_products'] = $prod_upd;
+    $this->count['upd_nodes'] = $node_upd;
+
+    return $data;
   }
 
   /**
@@ -96,7 +137,7 @@ Abstract class Source {
 
     // Rename physical files.
     $files = scandir($this->config['files_path']);
-    foreach($files as $key=>$name){
+    foreach ($files as $key => $name) {
       if ($name == '.' || $name == '..') {
         continue;
       }
@@ -153,7 +194,7 @@ Abstract class Source {
         continue;
       }
       foreach ($item['files'] as $key => $file) {
-        $ini_path = explode('/' , $file);
+        $ini_path = explode('/', $file);
 
         // Clear out the prefix.
         if (!empty($this->config['file_path_prefix'])) {
@@ -201,7 +242,7 @@ Abstract class Source {
       foreach ($entry as $sub_key => $item) {
         if ($this->config['map'][$sub_key] == 'files') {
           $new_data[$key]['files'] = explode(',', $item);
-          foreach($new_data[$key]['files'] as $keya => $filename) {
+          foreach ($new_data[$key]['files'] as $keya => $filename) {
             $new_data[$key]['files'][$keya] = trim($filename);
           }
         }

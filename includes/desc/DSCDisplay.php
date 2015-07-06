@@ -37,11 +37,16 @@ class DSCDisplay extends Display {
     }
 
     $product = reset($this->products);
-    $node = $this->newDisplay($product);
+    if (!empty($this->pack['display'])) {
+      $node = node_load($this->pack['display']);
+    }
+    else {
+      $node = $this->newDisplay($product);
+    }
 
     // Added terms from all entries in a pack.
     $tids = array();
-    foreach ($this->pack as $entry) {
+    foreach ($this->pack['items'] as $entry) {
       $tids[] = $this->termPath2Tid($entry['term-l1'] . '/' . $entry['term-l2'], 'event_rentals');
     }
     $tids = array_unique($tids);

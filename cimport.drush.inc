@@ -35,7 +35,10 @@ function cimport_drush_command() {
  */
 function drush_cimport_cistats($verbal = NULL) {
   $res = cimport_stats();
-  drush_log('Available ' . $res['products'] . ' products and ' . $res['nodes'] . ' display nodes.', 'ok');
+  $new_products = $res['products'] - $res['upd_products'];
+  $new_nodes = $res['nodes'] - $res['upd_nodes'];
+  drush_log('Products: ' . $new_products . ' new, ' . $res['upd_products'] . ' updates.', 'ok');
+  drush_log('Displays: ' . $new_nodes . ' new, ' . $res['upd_nodes'] . ' updates.', 'ok');
   $count_missing = count($res['media']['all']) == count($res['media']['missing']) ? 'all' : count($res['media']['missing']);
   drush_log('Listed ' . count($res['media']['all']) . ' files, ' . $count_missing . ' of them missing.', 'ok');
   if ($verbal && count($res['media']['missing'])) {

@@ -27,7 +27,7 @@ class Display extends Destination {
     }
 
     // The pack.
-    $this->pack = $pack['items'];
+    $this->pack = $pack;
 
     $this->products = $products;
     $this->config = $config;
@@ -47,11 +47,16 @@ class Display extends Destination {
     }
 
     $product = reset($this->products);
-    $node = $this->newDisplay($product);
+    if (!empty($this->pack['display'])) {
+      $node = node_load($this->pack['display']);
+    }
+    else {
+      $node = $this->newDisplay($product);
+    }
 
     // Added terms from all entries in a pack.
     $tids = array();
-    foreach ($this->pack as $entry) {
+    foreach ($this->pack['items'] as $entry) {
       $tids[] = $this->termPath2Tid($entry['term-l1'] . '/' . $entry['term-l2'], 'product_category');
     }
     $tids = array_unique($tids);

@@ -79,8 +79,9 @@ function cimport_run($run_conf = array()) {
   // Get data
   $Source = new DSCSource($config['source']);
   $data = $Source->getData();
-  $count_products = $Source->count();
-  $count_nodes = count($data);
+  $count = $Source->count();
+  $count_products = $count['products'];
+  $count_nodes = $count['nodes'];
   $media = $Source->getMedia();
   unset($Source);
 
@@ -146,17 +147,11 @@ function cimport_run($run_conf = array()) {
 
     // Get data
     $Source = new DSCSource($config['source']);
-    $data = $Source->getData();
-    $count_products = $Source->count();
-    $count_nodes = count($data);
-    $media = $Source->getMedia();
+    $count = $Source->count();
+    $count['media'] = $Source->getMedia();
     unset($Source);
 
-    return array(
-      'products' => $count_products,
-      'nodes' => $count_nodes,
-      'media' => $media,
-    );
+    return $count;
   }
   
   /**

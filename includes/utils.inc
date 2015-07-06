@@ -53,3 +53,15 @@ function cimport_clean_unused_files() {
   drush_log('Found ' . $total . 'total items in public://', 'ok');
   drush_log('Found ' . $orphans . ' unused items in public://', 'ok');
 }
+
+/**
+ * Gets product display from product id.
+ */
+function cimport_get_nid_from_pid($pid) {
+  $product = commerce_product_load($pid);
+  $wrapper = entity_metadata_wrapper('commerce_product', $product);
+  $nodes = $wrapper->field_product_node->value();
+  $node = reset($nodes);
+
+  return !empty($node->nid) ? $node->nid : 0;
+}
