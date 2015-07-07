@@ -37,6 +37,7 @@ class Product extends Destination {
   protected function create() {
     if (!empty($this->entry['update']['pid'])) {
       $this->product = commerce_product_load($this->entry['update']['pid']);
+      $this->product->status = 1;
     }
     if (empty($this->product->product_id)) {
       $this->product = commerce_product_new($this->config['type']);

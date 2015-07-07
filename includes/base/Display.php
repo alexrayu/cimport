@@ -53,6 +53,7 @@ class Display extends Destination {
     $product = reset($this->products);
     if (!empty($this->pack['display'])) {
       $node = node_load($this->pack['display']);
+      $node->status = 1;
     }
     else {
       $node = $this->newDisplay($product);

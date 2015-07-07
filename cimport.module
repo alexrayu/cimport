@@ -183,16 +183,18 @@ function cimport_drush_help($command) {
 function cimport_del($run = FALSE) {
   $config = cimport_get_config();
   $Eraser = new DSCEraser($config);
+  $del_prods = $Eraser->count();
   if ($run === TRUE) {
     $Eraser->run();
     $del_nodes = $Eraser->delNodesCount();
+    $del_prods = $Eraser->delProdsCount();
   }
-  $count = $Eraser->count();
   $del_nodes = $Eraser->delNodesCount();
+
   unset($Eraser);
 
   return array(
-    'prods' => $count,
+    'prods' => $del_prods,
     'nodes' => $del_nodes,
   );
 }

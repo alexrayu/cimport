@@ -81,7 +81,7 @@ NOTE: This module is NOT the best way to import data into Commerce, so use the [
  ```
 
 
-8. *Deleting* is serviced from a different source - `delete.csv`, containing the SKUs of the products to be deleted. Display nodes with empty reference fields, will be deleted as well.
+8. *Deleting* is serviced from a different source - `delete.csv`, containing the SKUs of the products to be deleted. Display nodes with empty reference fields, will be deleted as well. Products that are in the Line Items, will not be deleted.
 
 If you find this module unclear or not working in your specific case, remember, that I asked you to not use it and use the Migrate module instead! ;)
 
