@@ -91,9 +91,11 @@ class Display extends Destination {
    */
   protected function addProduct(&$node, &$product) {
     // Check if already there.
-    foreach ($node->{$this->product_field}['und'] as $item) {
-      if ($item['product_id'] == $product->product_id) {
-        return;
+    if (!empty($node->{$this->product_field}['und'])) {
+      foreach ($node->{$this->product_field}['und'] as $item) {
+        if ($item['product_id'] == $product->product_id) {
+          return;
+        }
       }
     }
     $node->{$this->product_field}['und'][] = array(
