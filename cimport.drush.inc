@@ -26,12 +26,16 @@ function cimport_drush_command() {
     'description' => dt('Files Clean.'),
     'arguments'   => array(),
   );
+  $items['cidel'] = array(
+    'description' => dt('Cimport delete products.'),
+    'arguments'   => array(),
+  );
   
   return $items;
 }
 
 /**
- * Callback function for drush my-command.
+ * Callback function for drush cistats.
  */
 function drush_cimport_cistats($verbal = NULL) {
   $res = cimport_stats();
@@ -57,7 +61,7 @@ function drush_cimport_cistats($verbal = NULL) {
 }
 
 /**
- * Callback function for drush my-command.
+ * Callback function for drush cirun.
  */
 function drush_cimport_cirun() {
   drush_log('Running import', 'ok');
@@ -66,7 +70,7 @@ function drush_cimport_cirun() {
 }
 
 /**
- * Callback function for drush my-command.
+ * Callback function for drush ciprods.
  */
 function drush_cimport_ciprods() {
   drush_log('Running re-import of products', 'ok');
@@ -81,4 +85,25 @@ function drush_cimport_fclean() {
   drush_log('Running cleanup', 'ok');
   $res = cimport_clean_unused_files();
   drush_log('Unused files cleaned', 'ok');
+}
+
+/**
+ * Callback function for drush cidel.
+ */
+function drush_cimport_cidel() {
+  $res = cimport_del();
+  if ($res['prods']) {
+    drush_log('There are ' . $res['prods'] . ' entries that match SKUs and will be deleted.', 'ok');
+    if (drush_confirm('Are you sure you want to proceed?')) {
+      $res = cimport_del(TRUE);
+      drush_log('Deleted ' . $res['prods'] . ' products and ' . $res['nodes'] . ' nodes.', 'ok');
+    }
+    else {
+      drush_log('Delete aborted.', 'ok');
+      return;
+    }
+  }
+  else {
+    drush_log('No matching SKUs. Nothing to delete.', 'warning');
+  }
 }

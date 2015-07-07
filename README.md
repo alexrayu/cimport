@@ -1,6 +1,6 @@
 # Commerce Import
 
-Import CSV to Drupal Commerce.
+**IMPORT** CSV to Drupal Commerce, **UPDATE** products by SKU, **DELETE** products by SKU.
 
 Had some very very eccentric CSV to import to Drupal Commerce. Started to buid around Migrate, but then moved out as a self-standing module. Now, it is not related to Migrate module at all.
 
@@ -8,10 +8,10 @@ You will need to do some coding to import using this module.
 
 NOTE: This module is NOT the best way to import data into Commerce, so use the [Migrate module] (https://www.drupal.org/project/migrate) whenever you can!
 
+
 ## Usage
 
 1. Set up config in cimport.module.
-
 
 2. The module first verifies the sources and files to import, and then creates the data object out of it.
   * Subclass the Source class. See the DSCSource class as a sample.
@@ -80,6 +80,8 @@ NOTE: This module is NOT the best way to import data into Commerce, so use the [
  );
  ```
 
+
+8. *Deleting* is serviced from a different source - `delete.csv`, containing the SKUs of the products to be deleted. Display nodes with empty reference fields, will be deleted as well.
 
 If you find this module unclear or not working in your specific case, remember, that I asked you to not use it and use the Migrate module instead! ;)
 

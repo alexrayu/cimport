@@ -60,9 +60,7 @@ class DSCDisplay extends Display {
 
     // Add products.
     foreach ($this->products as $product) {
-      $node->field_product_reference['und'][] = array(
-        'product_id' => $product->product_id,
-      );
+      $this->addProduct($node, $product);
     }
     
     // Description

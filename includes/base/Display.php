@@ -18,6 +18,9 @@ class Display extends Destination {
   // Name of content type.
   protected $content_type;
 
+  // Name of product reference field..
+  protected $product_field;
+
   // Node object.
   protected $node;
 
@@ -31,7 +34,8 @@ class Display extends Destination {
 
     $this->products = $products;
     $this->config = $config;
-    $this->content_type = !empty($config['content_type']) ? $config['content_type'] : 'product_display';
+    $this->content_type = !empty($config['dest']['content_type']) ? $config['dest']['content_type'] : 'product_display';
+    $this->product_field = !empty($config['dest']['product_field']) ? $config['dest']['product_field'] : 'field_product';
 
     $this->import();
   }
@@ -70,9 +74,7 @@ class Display extends Destination {
 
     // Add products.
     foreach ($this->products as $product) {
-      $node->field_product['und'][] = array(
-        'product_id' => $product->product_id,
-      );
+      $this->addProduct($node, $product);
     }
 
     // Description
@@ -81,6 +83,21 @@ class Display extends Destination {
     node_save($node);
 
     $this->node = $node;
+  }
+
+  /**
+   * Adds product to node.
+   */
+  protected function addProduct(&$node, &$product) {
+    // Check if already there.
+    foreach ($node->{$this->product_field}['und'] as $item) {
+      if ($item['product_id'] == $product->product_id) {
+        return;
+      }
+    }
+    $node->{$this->product_field}['und'][] = array(
+      'product_id' => $product->product_id,
+    );
   }
 
   /**

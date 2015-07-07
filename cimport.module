@@ -53,16 +53,26 @@ function cimport_get_config() {
         'unused-shipping',
         'files',                 // Don't rename this field.
       ),
+      // Lines to skip in CSV (when used as headings).
       'skip' => 1,
+      // Images source path prefix.
       'file_path_prefix' => '*',
+      // Generate SKU if missing.
       'generate_sku' => TRUE,
+      // Import even if files missing.
       'ignore_missing_files' => TRUE,
+      // Rename all files to lowercase.
       'files_tolower' => TRUE,
     ),
     'dest' => array(
+      // Product type to use.
       'type' => 'product',
+      // Destination dir where to move the files.
       'dest_dir' => 'public://products',
-      'content_type' => 'product_display'
+      // Product Display ct.
+      'content_type' => 'product_display',
+      // Product Display reference field name.
+      'product_field' => 'field_product',
     ),
   );
 
@@ -139,28 +149,50 @@ function cimport_run($run_conf = array()) {
   );
 }
 
-  /**
-   * Drush stats callback.
-   */
-  function cimport_stats() {
-    $config = cimport_get_config();
+/**
+ * Drush stats callback.
+ */
+function cimport_stats() {
+  $config = cimport_get_config();
 
-    // Get data
-    $Source = new DSCSource($config['source']);
-    $count = $Source->count();
-    $count['media'] = $Source->getMedia();
-    unset($Source);
+  // Get data
+  $Source = new DSCSource($config['source']);
+  $count = $Source->count();
+  $count['media'] = $Source->getMedia();
+  unset($Source);
 
-    return $count;
+  return $count;
+}
+
+/**
+ * Implements hook_drush_help().
+ */
+function cimport_drush_help($command) {
+  switch ($command) {
+    case 'drush:my-command':
+      return dt('Run my command');
   }
-  
-  /**
-   * Implements hook_drush_help().
-   */
-  function cimport_drush_help($command) {
-    switch ($command) {
-      case 'drush:my-command':
-        return dt('Run my command');
-    }
-  }
+}
 
+/**
+ * Deletes listed products.
+ * @param bool $run
+ *  If not TRUE, will perform an empty, stats run.
+ * @return array
+ */
+function cimport_del($run = FALSE) {
+  $config = cimport_get_config();
+  $Eraser = new DSCEraser($config);
+  if ($run === TRUE) {
+    $Eraser->run();
+    $del_nodes = $Eraser->delNodesCount();
+  }
+  $count = $Eraser->count();
+  $del_nodes = $Eraser->delNodesCount();
+  unset($Eraser);
+
+  return array(
+    'prods' => $count,
+    'nodes' => $del_nodes,
+  );
+}
