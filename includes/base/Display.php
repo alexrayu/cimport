@@ -54,6 +54,7 @@ class Display extends Destination {
     if (!empty($this->pack['display'])) {
       $node = node_load($this->pack['display']);
       $node->status = 1;
+      $node->title = $product->title;
     }
     else {
       $node = $this->newDisplay($product);
@@ -65,6 +66,9 @@ class Display extends Destination {
       $tids[] = $this->termPath2Tid($entry['term-l1'] . '/' . $entry['term-l2'], 'product_category');
     }
     $tids = array_unique($tids);
+    // Reset tids (used in update).
+    $node->field_product_category['und'] = array();
+    // Import terms.
     foreach ($tids as $tid) {
       if (!empty($tid)) {
         $node->field_product_category['und'][] = array(
