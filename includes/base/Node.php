@@ -2,9 +2,9 @@
 
 /**
  * @file
- *  Handles assignation to the product display node.
+ *  Handles assignation to the product node.
  */
-class Display extends Destination {
+class Node extends Destination {
 
   // Product objects.
   protected $products;

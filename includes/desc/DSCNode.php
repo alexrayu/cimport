@@ -5,12 +5,12 @@
  *  HRER Implementation of a product display.
  */
 
-class DSCDisplay extends Display {
+class DSCNode extends Node {
 
   /**
    * Generate an empty product display node.
    */
-  protected function newDisplay($product) {
+  protected function newNode($product) {
     global $language;
 
     $node = new stdClass();
@@ -43,7 +43,7 @@ class DSCDisplay extends Display {
       $node->title = $product->title;
     }
     else {
-      $node = $this->newDisplay($product);
+      $node = $this->newNode($product);
     }
 
     // Added terms from all entries in a pack.

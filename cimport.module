@@ -138,7 +138,7 @@ function cimport_run($run_conf = array()) {
     }
 
     if (empty($run_conf['products_only'])) {
-      $Display = new DSCDisplay($products, $config['dest'], $pack);
+      $Display = new DSCNode($products, $config['dest'], $pack);
       unset($Display);
     }
   }
