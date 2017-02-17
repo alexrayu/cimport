@@ -57,11 +57,14 @@ function cimport_clean_unused_files() {
 /**
  * Gets product display from product id.
  */
-function cimport_get_nid_from_pid($pid) {
-  $product = commerce_product_load($pid);
-  $wrapper = entity_metadata_wrapper('commerce_product', $product);
-  $nodes = $wrapper->field_product_node->value();
-  $node = reset($nodes);
+function cimport_get_nid_from_pid($pid, $product_field_name) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->fieldCondition($product_field_name, 'product_id', $pid)
+    ->range(0, 1);
+  if ($result = $query->execute()) {
+    return array_shift(array_keys($result['node']));
+  }
 
-  return !empty($node->nid) ? $node->nid : 0;
+  return FALSE;
 }

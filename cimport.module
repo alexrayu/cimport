@@ -45,7 +45,7 @@ function cimport_get_config() {
       // Product Display ct.
       'content_type' => 'product_display',
       // Product Display reference field name.
-      'product_field' => 'field_product',
+      'product_field' => 'field_product_variations',
     ),
   );
 
@@ -88,25 +88,24 @@ function cimport_run($run_conf = array()) {
 
   // Main Loop.
   $count = 0;
-  foreach ($data as $pack) {
+  foreach ($data as &$pack) {
     $products = array();
-    foreach ($pack as $entry) {
-      $count++;
+    $count++;
+    foreach ($pack as &$entry) {
       $product = new DSCProduct($entry, $config['dest']);
       $the_product = $product->getProduct();
       if (!empty($the_product->sku)) {
         $products[] = $the_product;
       }
       unset($product);
-
-      if (function_exists('drush_log')) {
-        _drush_print_progress($count / $count_products);
-      }
     }
 
     if (empty($run_conf['products_only'])) {
       $display = new DSCNode($products, $config['dest'], $pack);
       unset($display);
+    }
+    if (function_exists('drush_log')) {
+      _drush_print_progress($count / $count_nodes);
     }
   }
 

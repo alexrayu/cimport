@@ -110,7 +110,7 @@ class Term {
     if (!empty($this->color_field)) {
       $color = self::getColor($term->name);
       if (!empty($color)) {
-        $term->{$this->color_field}['und'][0]['value'] = $color;
+        $term->{$this->color_field}[LANGUAGE_NONE][0]['value'] = $color;
         $changed = TRUE;
       }
     }

@@ -2,23 +2,47 @@
 
 /**
  * @file
- *  Handles import from the CSV file. Generic class.
+ * Contains the Source abstract class.
+ */
+
+/**
+ * Class Source.
  */
 abstract class Source {
 
-  // Raw data.
+  /**
+   * Source raw data.
+   *
+   * @var array
+   */
   protected $raw_data = array();
 
-  // Formatted data.
+  /**
+   * Formatted and preprocessed source data.
+   *
+   * @var array
+   */
   protected $data = array();
 
-  // Media paths.
+  /**
+   * Declared and missing files paths.
+   *
+   * @var array
+   */
   protected $media = array();
 
-  // Config.
+  /**
+   * Stored configuration.
+   *
+   * @var array
+   */
   protected $config = array();
 
-  // Amount of valid products,
+  /**
+   * Valid products and nodes count.
+   *
+   * @var array
+   */
   protected $count = array(
     'products' => 0,
     'nodes' => 0,
@@ -26,7 +50,13 @@ abstract class Source {
     'upd_nodes' => 0,
   );
 
-  function __construct($config) {
+  /**
+   * Source constructor.
+   *
+   * @param array $config
+   *    Configuration.
+   */
+  public function __construct($config) {
 
     // Files folder.
     $this->config['files_path'] = drupal_get_path('module', 'cimport') . '/source/files';
@@ -37,7 +67,6 @@ abstract class Source {
     $this->load();
     $this->prepare();
   }
-
 
   /**
    * Imports csv.
