@@ -6,6 +6,11 @@
  *
  */
 
+/**
+ * Ignore missing files during import.
+ */
+define('CIMPORT_IGNORE_MISSING_FILES', TRUE);
+
 // Include the includes.
 foreach (glob(drupal_get_path('module', 'cimport') . "/includes/*.inc") as $filename) {
   include $filename;
@@ -13,12 +18,12 @@ foreach (glob(drupal_get_path('module', 'cimport') . "/includes/*.inc") as $file
 
 // Include the classes bases.
 foreach (glob(drupal_get_path('module', 'cimport') . "/includes/base/*.php") as $filename) {
-  include_once $filename;
+  include $filename;
 }
 
 // Include the classes descendants.
 foreach (glob(drupal_get_path('module', 'cimport') . "/includes/desc/*.php") as $filename) {
-  include_once $filename;
+  include $filename;
 }
 
 /**
@@ -29,40 +34,8 @@ foreach (glob(drupal_get_path('module', 'cimport') . "/includes/desc/*.php") as 
 function cimport_get_config() {
   $config = array(
     'source' => array(
-      'map' => array(
-        'term-l1',
-        'term-l2',
-        'manufacturer',
-        'title',              // Don't rename this field.
-        'descr',
-        'qty',
-        'unused-size',
-        'unused-color',
-        'unused-other_attr',
-        'contract',
-        'contract_price',
-        'sale_price',
-        'qty_uoi',
-        'unit',
-        'fob',
-        'sev',
-        'pn',
-        'coo',
-        'weight',
-        'height',
-        'unused-shipping',
-        'files',                 // Don't rename this field.
-      ),
-      // Lines to skip in CSV (when used as headings).
-      'skip' => 1,
-      // Images source path prefix.
-      'file_path_prefix' => '*',
-      // Generate SKU if missing.
-      'generate_sku' => TRUE,
-      // Import even if files missing.
-      'ignore_missing_files' => TRUE,
-      // Rename all files to lowercase.
-      'files_tolower' => TRUE,
+      // Field to group products into displays.
+      'group_field' => 'group',
     ),
     'dest' => array(
       // Product type to use.
@@ -86,51 +59,45 @@ function cimport_get_config() {
 function cimport_run($run_conf = array()) {
   $config = cimport_get_config();
 
-  // Get data
-  $Source = new DSCSource($config['source']);
-  $data = $Source->getData();
-  $count = $Source->count();
+  // Get data.
+  $source = new DSCSource($config['source']);
+  $data = $source->getData();
+  $count = $source->count();
   $count_products = $count['products'];
   $count_nodes = $count['nodes'];
-  $media = $Source->getMedia();
-  unset($Source);
+  $media = $source->getMedia();
+  unset($source);
 
   // No data. Quit.
   if (!count($data)) {
     if (function_exists('drush_log')) {
-      drush_log('No valid data to import.', 'error');
+      drush_log('No valid data to import. Quit.', 'error');
     }
-    return;
+    return FALSE;
   }
 
-  // Broken images. Quit.
+  // Missing files. Warn.
   if (count($media['missing'])) {
-    if (empty($config['source']['ignore_missing_files']) || !$config['source']['ignore_missing_files']) {
-      if (function_exists('drush_log')) {
-        drush_log(count($media['missing']) . ' files missing. Override inactive. Will not import.', 'error');
-      }
-      return;
-    }
-    else {
-      if (function_exists('drush_log')) {
-        drush_log(count($media['missing']) . ' files missing. Override active. Import commencing.', 'warning');
+    if (function_exists('drush_log')) {
+      drush_log(count($media['missing']) . ' files missing.', 'warning');
+      if (!CIMPORT_IGNORE_MISSING_FILES) {
+        return FALSE;
       }
     }
   }
 
-  // Main Loop
+  // Main Loop.
   $count = 0;
   foreach ($data as $pack) {
-    // Create products, gather id's.
     $products = array();
-    foreach ($pack['items'] as $entry) {
+    foreach ($pack as $entry) {
       $count++;
-      $Product = new DSCProduct($entry, $config['dest']);
-      $product = $Product->getProduct();
-      if (!empty($product->sku)) {
-        $products[] = $product;
+      $product = new DSCProduct($entry, $config['dest']);
+      $the_product = $product->getProduct();
+      if (!empty($the_product->sku)) {
+        $products[] = $the_product;
       }
-      unset($Product);
+      unset($product);
 
       if (function_exists('drush_log')) {
         _drush_print_progress($count / $count_products);
@@ -138,8 +105,8 @@ function cimport_run($run_conf = array()) {
     }
 
     if (empty($run_conf['products_only'])) {
-      $Display = new DSCNode($products, $config['dest'], $pack);
-      unset($Display);
+      $display = new DSCNode($products, $config['dest'], $pack);
+      unset($display);
     }
   }
 
@@ -155,11 +122,11 @@ function cimport_run($run_conf = array()) {
 function cimport_stats() {
   $config = cimport_get_config();
 
-  // Get data
-  $Source = new DSCSource($config['source']);
-  $count = $Source->count();
-  $count['media'] = $Source->getMedia();
-  unset($Source);
+  // Get data.
+  $source = new DSCSource($config['source']);
+  $count = $source->count();
+  $count['media'] = $source->getMedia();
+  unset($source);
 
   return $count;
 }
@@ -176,22 +143,24 @@ function cimport_drush_help($command) {
 
 /**
  * Deletes listed products.
+ *
  * @param bool $run
- *  If not TRUE, will perform an empty, stats run.
+ *    If not TRUE, will perform an empty, stats run.
+ *
  * @return array
+ *    Operation result.
  */
 function cimport_del($run = FALSE) {
   $config = cimport_get_config();
-  $Eraser = new DSCEraser($config);
-  $del_prods = $Eraser->count();
+  $eraser = new DSCEraser($config);
+  $del_prods = $eraser->count();
   if ($run === TRUE) {
-    $Eraser->run();
-    $del_nodes = $Eraser->delNodesCount();
-    $del_prods = $Eraser->delProdsCount();
+    $eraser->run();
+    $del_prods = $eraser->delProdsCount();
   }
-  $del_nodes = $Eraser->delNodesCount();
+  $del_nodes = $eraser->delNodesCount();
 
-  unset($Eraser);
+  unset($eraser);
 
   return array(
     'prods' => $del_prods,

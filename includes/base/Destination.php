@@ -4,7 +4,7 @@
  * @file
  *  Template for destination classes.
  */
-Abstract class Destination {
+abstract class Destination {
 
   // Product configuration.
   protected $config;

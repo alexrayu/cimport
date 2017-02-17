@@ -51,33 +51,27 @@ class Product extends Destination {
   protected function fill() {
     $product = $this->product;
 
-    // Required
+    // Required.
     $product->sku = $this->entry['sku'];
     $product->title = $this->entry['title'];
 
-    // Price
-    $product->commerce_price['und'][0]['amount'] = preg_replace("/[^0-9\.\,]/", NULL, $this->entry['price']) * 100;
-    $product->commerce_price['und'][0]['currency_code'] = !empty($this->entry['currency']) ? $this->entry['currency'] : 'USD';
-
-    // Files
+    // Files.
     $fids_array = $this->filePath2Fid($this->entry['files']);
     if (!empty($fids_array)) {
       $product->field_product_image['und'] = $fids_array;
     }
 
-    // Size Term
-    $tid = $this->termPath2Tid($this->entry['size'], 'size');
-    if (!empty($tid)) {
-      $product->field_size['und'][0]['tid'] = $tid;
-    }
+    // Price.
+    $product->commerce_price['und'][0]['amount'] = preg_replace("/[^0-9\.\,]/", NULL, $this->entry['price']) * 100;
+    $product->commerce_price['und'][0]['currency_code'] = !empty($this->entry['currency']) ? $this->entry['currency'] : 'USD';
 
-    // Color Term
+    // Color Term.
     $tid = $this->termPath2Tid($this->entry['color'], 'color', 'field_hex_value');
     if (!empty($tid)) {
       $product->field_product_color['und'][0]['tid'] = $tid;
     }
 
-    // Physical dimensions
+    // Physical dimensions.
     $product->field_physical_dimensions['und'][0] = array(
       'height' => !empty($this->entry['height']) ? $this->entry['height'] : 0,
       'length' => !empty($this->entry['length']) ? $this->entry['length'] : 0,
@@ -85,7 +79,7 @@ class Product extends Destination {
       'unit' => 'in',
     );
 
-    // Description
+    // Description.
     $product->field_description['und'][0]['value'] = $this->entry['descr'];
     $product->field_description['und'][0]['format'] = 'full_html';
 

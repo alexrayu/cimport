@@ -4,7 +4,7 @@
  * @file
  *  Handles import from the CSV file. Generic class.
  */
-Abstract class Source {
+abstract class Source {
 
   // Raw data.
   protected $raw_data = array();
@@ -28,35 +28,11 @@ Abstract class Source {
 
   function __construct($config) {
 
-    // Source folder.
-    $this->config['source_path'] = !empty($config['source_path']) ? $config['source_path'] : drupal_get_path('module', 'cimport') . '/source';
-
     // Files folder.
-    $this->config['files_path'] = !empty($config['files_path']) ? $config['files_path'] : drupal_get_path('module', 'cimport') . '/source/files';
-
-    // CSV File name.
-    $this->config['csv_file'] = !empty($config['csv_file']) ? $config['csv_file'] : drupal_get_path('module', 'cimport') . '/source/source.csv';
-
-    // How many first entries to skip (is used for meta data).
-    $this->config['skip'] = !empty($config['skip']) ? $config['skip'] : 0;
-
-    // SCV separator.
-    $this->config['separator'] = !empty($config['separator']) ? $config['separator'] : ',';
+    $this->config['files_path'] = drupal_get_path('module', 'cimport') . '/source/files';
 
     // Field to group by (commerce multi products).
     $this->config['group_field'] = !empty($config['group_field']) ? $config['group_field'] : NULL;
-
-    // Map array.
-    $this->config['map'] = !empty($config['map']) ? $config['map'] : array();
-
-    // File path prefix.
-    $this->config['file_path_prefix'] = !empty($config['file_path_prefix']) ? $config['file_path_prefix'] : NULL;
-
-    // Generate sku. Defaults to FALSE.
-    $this->config['generate_sku'] = !empty($config['generate_sku']) ? $config['generate_sku'] : FALSE;
-
-    // Whether convert files to lowercase. Defaults to FALSE..
-    $this->config['files_tolower'] = !empty($config['files_tolower']) ? $config['files_tolower'] : FALSE;
 
     $this->load();
     $this->prepare();
@@ -67,29 +43,45 @@ Abstract class Source {
    * Imports csv.
    */
   protected function load() {
-    if (($handle = fopen($this->config['csv_file'], "r"))) {
-      while (($data = fgetcsv($handle, 0, $this->config['separator']))) {
-        $this->raw_data[] = $data;
+    $data = [];
+    $header = [];
+    if ($handle = fopen(drupal_get_path('module', 'cimport') . '/source/source.csv', 'r')) {
+      $header = fgetcsv($handle);
+      while (($fragment = fgetcsv($handle)) !== FALSE) {
+        $joined = array_combine($header, $fragment);
+        if (!empty($this->config['group_field'])) {
+          $data[$joined[$this->config['group_field']]][] = $joined;
+        }
+        else {
+          $data[] = array($joined);
+        }
       }
+      fclose($handle);
     }
+
+    $this->map = $header;
+    $this->raw_data = $data;
   }
 
   /**
    * Prepare csv, format csv.
    */
   protected function prepare() {
-    $data = $this->map($this->raw_data);
+    $data = $this->preprocess($this->raw_data);
 
     // Unset the raw data to save memory.
     $this->raw_data = array();
 
-    if ($this->config['files_tolower']) {
-      $data = $this->filesToLower($data);
-    }
+    $data = $this->filesToLower($data);
     $data = $this->filterInvalid($data);
-    $this->count['products'] = count($data);
+
+    // Count.
+    $this->count['nodes'] = count($data);
+    foreach ($data as $group => $variants) {
+      $this->count['products'] += count($variants);
+    }
+
     $data = $this->processFilePaths($data);
-    $data = $this->group($data);
     $data = $this->findExisting($data);
 
     $this->data = $data;
@@ -98,23 +90,17 @@ Abstract class Source {
   /**
    * Find existing products to update.
    */
-  function findExisting(&$data) {
+  private function findExisting($data) {
     $prod_upd = 0;
     $node_upd = 0;
-    foreach ($data as $key => $items) {
-      $entries = $items['items'];
+    foreach ($data as $group => $variants) {
+
       $child_updated = FALSE;
-      foreach ($entries as $entry_id => $entry) {
-        $product = commerce_product_load_by_sku($entry['sku']);
+      foreach ($variants as $row) {
+        $product = commerce_product_load_by_sku($row['sku']);
         $pid = $product->product_id;
         if ($pid) {
           $prod_upd++;
-          $child_updated = TRUE;
-          $nid = cimport_get_nid_from_pid($pid);
-          $data[$key]['display'] = $nid;
-          $data[$key]['items'][$entry_id]['update'] = array(
-            'pid' => $pid,
-          );
         }
       }
       if ($child_updated) {
@@ -123,7 +109,6 @@ Abstract class Source {
     }
 
     // Set global count.
-    $this->count['nodes'] = count($data);
     $this->count['upd_products'] = $prod_upd;
     $this->count['upd_nodes'] = $node_upd;
 
@@ -162,23 +147,23 @@ Abstract class Source {
   }
 
   /**
-   * Sift invalid data.
+   * Filter invalid data.
    */
   protected function filterInvalid($data) {
-    foreach ($data as $key => $item) {
-      if (empty($item['sku'])) {
-        if (!$this->config['generate_sku']) {
-          unset($data[$key]);
-          continue;
-        }
-        else {
+    foreach ($data as $group => $variants) {
+      foreach ($variants as $variant_key => $row) {
+
+        // Generate SKU if missing.
+        if (empty($row['sku'])) {
           $max_id = db_query('SELECT MAX(product_id) FROM {commerce_product}')->fetchField();
-          $data[$key]['sku'] = 'P-' . ($max_id + $key + 1);
+          $data[$group][$variant_key]['sku'] = $group . '-' . ($max_id + 1);
         }
-      }
-      if (empty($item['title'])) {
-        unset($data[$key]);
-        continue;
+
+        // Handle Title.
+        if (empty($row['title'])) {
+          unset($data[$group][$variant_key]);
+        }
+
       }
     }
 
@@ -189,28 +174,22 @@ Abstract class Source {
    * Process file paths.
    */
   protected function processFilePaths($data) {
-    foreach ($data as &$item) {
-      if (empty($item['files'])) {
-        continue;
-      }
-      foreach ($item['files'] as $key => $file) {
-        $ini_path = explode('/', $file);
-
-        // Clear out the prefix.
-        if (!empty($this->config['file_path_prefix'])) {
-          if ($this->config['file_path_prefix'] == '*') {
-            $item['files'][$key] = $this->config['files_path'] . '/' . array_pop($ini_path);
-          }
-          else {
-            $item['files'][$key] = $this->config['files_path'] . '/' . str_replace($this->config['file_path_prefix'], '', $file);
-          }
+    foreach ($data as $group => &$variants) {
+      foreach ($variants as $variant_key => &$row) {
+        if (empty($row['files'])) {
+          continue;
         }
+        foreach ($row['files'] as $key => $file) {
+          $file = strtolower(trim($file));
+          $ini_path = explode('/', $file);
+          $row['files'][$key] = $this->config['files_path'] . '/' . array_pop($ini_path);
 
-        // Add file path to media variable.
-        $this->media['all'][] = $item['files'][$key];
-        if (!file_exists($item['files'][$key])) {
-          $this->media['missing'][] = $item['files'][$key];
-          $item['files'][$key] = '';
+          // Add file path to media variable.
+          $this->media['all'][] = $row['files'][$key];
+          if (!file_exists($row['files'][$key])) {
+            $this->media['missing'][] = $row['files'][$key];
+            unset($row['files'][$key]);
+          }
         }
       }
     }
@@ -230,77 +209,21 @@ Abstract class Source {
   /**
    * Map data.
    */
-  protected function map($data) {
-    $new_data = array();
-    $counter = -1;
-    foreach ($data as $key => $entry) {
-      $counter++;
-      if ($counter < $this->config['skip']) {
-        // Skip the number of top rows indicated in config.
-        continue;
-      }
-      foreach ($entry as $sub_key => $item) {
-        if ($this->config['map'][$sub_key] == 'files') {
-          $new_data[$key]['files'] = explode(',', $item);
-          foreach ($new_data[$key]['files'] as $keya => $filename) {
-            $new_data[$key]['files'][$keya] = trim($filename);
+  protected function preprocess($data) {
+    foreach ($data as $group => $variants) {
+      foreach ($variants as $variant_key => $row) {
+        foreach ($row as $key => $value) {
+
+          // Files.
+          if ($key == 'files') {
+            $data[$group][$variant_key][$key] = explode(',', $value);
           }
-        }
-        else {
-          $new_data[$key][$this->config['map'][$sub_key]] = $item;
+
         }
       }
     }
 
-    return $new_data;
-  }
-
-  /**
-   * Group data.
-   */
-  protected function group($data) {
-    $new_data = array();
-    $group_field = $this->config['group_field'];
-    if (!empty($group_field)) {
-      // Grouped into multi-products,
-      foreach ($data as $entry) {
-        if (!empty($entry[$group_field])) {
-          $field_val = $entry[$group_field];
-          $new_data[$field_val]['items'][] = $entry;
-        }
-      }
-      // Check and normalize sku.
-      if ($group_field == 'sku') {
-        $this->normalizeSku($new_data);
-      }
-    }
-    else {
-      // No grouping, 1 to 1,
-      foreach ($data as $entry) {
-        $new_data[] = array(
-          'items' => array(
-            0 => $entry,
-          ),
-        );
-      }
-    }
-
-    return $new_data;
-  }
-
-  /**
-   * Normalize sku of items with same sku.
-   */
-  protected function normalizeSku(&$new_data) {
-    foreach ($new_data as $sku => &$items) {
-      $counter = 0;
-      if (!empty($items['items'])) {
-        foreach ($items['items'] as &$item) {
-          $counter++;
-          $item['sku'] = $sku . '-' . $counter;
-        }
-      }
-    }
+    return $data;
   }
 
   /**
@@ -323,6 +246,5 @@ Abstract class Source {
   public function getMedia() {
     return $this->media;
   }
-
 
 }

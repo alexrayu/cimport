@@ -8,25 +8,6 @@
 class DSCNode extends Node {
 
   /**
-   * Generate an empty product display node.
-   */
-  protected function newNode($product) {
-    global $language;
-
-    $node = new stdClass();
-    $node->title = $product->true_title;
-    $node->type = $this->content_type;
-    node_object_prepare($node);
-    $node->language = $language->language;
-    $node->uid = 1;
-    $node->status = 1;
-    $node->promote = 0;
-    $node->comment = 0;
-
-    return $node;
-  }
-
-  /**
    * Import data into display.
    */
   protected function import() {
@@ -43,7 +24,7 @@ class DSCNode extends Node {
       $node->title = $product->title;
     }
     else {
-      $node = $this->newNode($product);
+      $node = $this->newDisplay($product);
     }
 
     // Added terms from all entries in a pack.
