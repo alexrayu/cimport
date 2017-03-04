@@ -2,47 +2,23 @@
 
 /**
  * @file
- * Contains the Source abstract class.
- */
-
-/**
- * Class Source.
+ *  Handles import from the CSV file. Generic class.
  */
 abstract class Source {
 
-  /**
-   * Source raw data.
-   *
-   * @var array
-   */
+  // Raw data.
   protected $raw_data = array();
 
-  /**
-   * Formatted and preprocessed source data.
-   *
-   * @var array
-   */
+  // Formatted data.
   protected $data = array();
 
-  /**
-   * Declared and missing files paths.
-   *
-   * @var array
-   */
+  // Media paths.
   protected $media = array();
 
-  /**
-   * Stored configuration.
-   *
-   * @var array
-   */
+  // Config.
   protected $config = array();
 
-  /**
-   * Valid products and nodes count.
-   *
-   * @var array
-   */
+  // Amount of valid products,
   protected $count = array(
     'products' => 0,
     'nodes' => 0,
@@ -50,13 +26,7 @@ abstract class Source {
     'upd_nodes' => 0,
   );
 
-  /**
-   * Source constructor.
-   *
-   * @param array $config
-   *    Configuration.
-   */
-  public function __construct($config) {
+  function __construct($config) {
 
     // Files folder.
     $this->config['files_path'] = drupal_get_path('module', 'cimport') . '/source/files';
@@ -68,22 +38,39 @@ abstract class Source {
     $this->prepare();
   }
 
+
   /**
    * Imports csv.
    */
   protected function load() {
     $data = [];
     $header = [];
+    $group_key = NULL;
     if ($handle = fopen(drupal_get_path('module', 'cimport') . '/source/source.csv', 'r')) {
       $header = fgetcsv($handle);
-      while (($fragment = fgetcsv($handle)) !== FALSE) {
-        $joined = array_combine($header, $fragment);
+
+      // Process row.
+      while (($row = fgetcsv($handle)) !== FALSE) {
+        $joined = array_combine($header, $row);
+
+        // Check if groups exist.
         if (!empty($this->config['group_field'])) {
-          $data[$joined[$this->config['group_field']]][] = $joined;
+          $group_key = $joined[$this->config['group_field']];
         }
-        else {
-          $data[] = array($joined);
+
+        // Check if SKU exists.
+        if (empty($joined['sku'])) {
+          $joined['sku'] = $this->genSku($group_key);
         }
+
+        // Force generate group key if empty.
+        if (empty($group_key)) {
+          $group_key = $joined['sku'];
+        }
+
+        // Group fields.
+        $data[$group_key][] = $joined;
+
       }
       fclose($handle);
     }
@@ -156,7 +143,7 @@ abstract class Source {
         continue;
       }
       $oldName = $this->config['files_path'] . '/' . $name;
-      $newName = $this->config['files_path'] . '/' . strtolower($name);
+      $newName = $this->config['files_path'] . '/' . $this->cleanFilename($name);
       if ($oldName != $newName) {
         rename($oldName, $newName);
       }
@@ -168,11 +155,28 @@ abstract class Source {
         continue;
       }
       foreach ($item['files'] as $key => $file) {
-        $item['files'][$key] = strtolower($file);
+        $item['files'][$key] = $this->cleanFilename($file);
       }
     }
 
     return $data;
+  }
+
+  /**
+   * Some unification of file names.
+   *
+   * @param string $filename
+   *    Initial file name.
+   *
+   * @return string
+   *    Cleaned up file name.
+   */
+  protected function cleanFilename($filename) {
+    $replace_patterns = [' ', '_'];
+    $filename = strtolower(trim($filename));
+    $filename = str_replace($replace_patterns, '-', $filename);
+
+    return $filename;
   }
 
   /**
@@ -181,12 +185,6 @@ abstract class Source {
   protected function filterInvalid($data) {
     foreach ($data as $group => $variants) {
       foreach ($variants as $variant_key => $row) {
-
-        // Generate SKU if missing.
-        if (empty($row['sku'])) {
-          $max_id = db_query('SELECT MAX(product_id) FROM {commerce_product}')->fetchField();
-          $data[$group][$variant_key]['sku'] = $group . '-' . ($max_id + 1);
-        }
 
         // Handle Title.
         if (empty($row['title'])) {
@@ -200,6 +198,27 @@ abstract class Source {
   }
 
   /**
+   * Generates a new SKU for a product.
+   *
+   * @param string $group
+   *    Group the product belongs to.
+   *
+   * @return string
+   *    SKU.
+   */
+  protected function genSku($group = NULL) {
+    $max_id = db_query('SELECT MAX(product_id) FROM {commerce_product}')->fetchField();
+    if (empty($group)) {
+      $sku = $max_id + 1;
+    }
+    else {
+      $sku = $group . '-' . ($max_id + 1);
+    }
+
+    return $sku;
+  }
+
+  /**
    * Process file paths.
    */
   protected function processFilePaths($data) {
@@ -209,7 +228,7 @@ abstract class Source {
           continue;
         }
         foreach ($row['files'] as $key => $file) {
-          $file = strtolower(trim($file));
+          $file = $this->cleanFilename($file);
           $ini_path = explode('/', $file);
           $row['files'][$key] = $this->config['files_path'] . '/' . array_pop($ini_path);
 
