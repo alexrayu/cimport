@@ -40,17 +40,19 @@ function drush_cimport_cistats() {
   drush_log('Listed ' . count($res['media']['all']) . ' files, ' . $count_missing . ' of them missing.', 'ok');
 
   // Save missing:
-  $file_name = drupal_get_path('module', 'cimport') . '/source/missing_images.csv';
-  $fp = fopen($file_name, 'w');
-  $counter = 0;
-  foreach ($res['media']['missing'] as $path) {
-    $counter++;
-    $path_arr = explode('/', $path);
-    $item = array_pop($path_arr);
-    fputcsv($fp, (array) $item);
+  if (count($res['media']['missing'])) {
+    $file_name = drupal_get_path('module', 'cimport') . '/source/missing_files.csv';
+    $fp = fopen($file_name, 'w');
+    $counter = 0;
+    foreach ($res['media']['missing'] as $path) {
+      $counter++;
+      $path_arr = explode('/', $path);
+      $item = array_pop($path_arr);
+      fputcsv($fp, (array) $item);
+    }
+    print('Missing files list saved to : ' . $file_name . "\n");
+    fclose($fp);
   }
-  print('Missing files list saved to : ' . $file_name . "\n");
-  fclose($fp);
 }
 
 /**
